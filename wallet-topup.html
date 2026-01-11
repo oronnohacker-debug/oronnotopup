@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Money - ORONNO</title>
+    <link rel="icon" type="image/png" href="oron.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { margin: 0; background: #070b14; font-family: 'Poppins', sans-serif; color: white; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        header a { color: white; text-decoration: none; font-size: 20px; }
+        
+        .balance-card { background: linear-gradient(135deg, #ff6600, #ff9900); padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
+        .balance-card h3 { margin: 0; font-size: 14px; opacity: 0.9; }
+        .balance-card h2 { margin: 5px 0 0; font-size: 28px; }
+
+        .payment-box { background: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 12px; }
+        .method-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .method { background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .method.active { border-color: #ff6600; background: #1a1a1a; }
+        .method img { height: 30px; display: block; margin: 0 auto 5px; }
+        .method span { font-size: 12px; font-weight: bold; }
+
+        .instruction { background: #fff; color: #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; text-align: center; }
+        .instruction p { margin: 5px 0; font-weight: bold; }
+
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #374151; background: #070b14; color: white; outline: none; box-sizing: border-box; }
+        input:focus { border-color: #ff6600; }
+        
+        .btn-submit { width: 100%; background: #ff6600; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-submit:disabled { background: #4b5563; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <a href="index.html"><i class="fas fa-arrow-left"></i></a>
+        <h2 style="margin: 0;">Add Money</h2>
+    </header>
+
+    <div class="balance-card">
+        <h3>Current Balance</h3>
+        <h2>৳ <span id="currentBal">0.00</span></h2>
+    </div>
+
+    <div class="payment-box">
+        <div class="method-select">
+            <div class="method" id="m-bkash" onclick="selectMethod('bkash')">
+                <img src="bkash.png" alt="bkash">
+                <span>Bkash</span>
+            </div>
+            <div class="method" id="m-nagad" onclick="selectMethod('nagad')">
+                <img src="nagad.png" alt="nagad">
+                <span>Nagad</span>
+            </div>
+        </div>
+
+        <div id="instructionBox" class="instruction">
+            <span id="methodName"></span> (Personal) সেন্ড মানি করুন:
+            <p style="color: #ff6600; font-size: 18px;">01959166419</p>
+        </div>
+
+        <input type="number" id="amountInput" placeholder="টাকার পরিমাণ (Amount)">
+        <input type="text" id="trxInput" placeholder="ট্রানজেকশন আইডি (TrxID)">
+        
+        <button class="btn-submit" id="submitBtn" onclick="submitRequest()">Submit Request</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", 
+        authDomain: "oronnotopup.firebaseapp.com", 
+        projectId: "oronnotopup", 
+        appId: "1:726828355370:web:331983d5db04056e76d853" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let selectedMethod = '';
+
+    function selectMethod(m) {
+        selectedMethod = m;
+        document.querySelectorAll('.method').forEach(el => el.classList.remove('active'));
+        document.getElementById('m-' + m).classList.add('active');
+        document.getElementById('instructionBox').style.display = 'block';
+        document.getElementById('methodName').innerText = m.toUpperCase();
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // রিয়েল টাইম ব্যালেন্স আপডেট (যাতে সব পেজে এক থাকে)
+            db.collection("users").doc(user.email).onSnapshot(doc => {
+                if (doc.exists) {
+                    document.getElementById('currentBal').innerText = (doc.data().balance || 0).toFixed(2);
+                }
+            });
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    async function submitRequest() {
+        const amount = document.getElementById('amountInput').value;
+        const trx = document.getElementById('trxInput').value;
+        const user = auth.currentUser;
+
+        if (!selectedMethod || !amount || !trx) {
+            return alert("সবগুলো তথ্য সঠিকভাবে দিন!");
+        }
+
+        if (amount < 10) {
+            return alert("সর্বনিম্ন ১০ টাকা এড করা যাবে।");
+        }
+
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').innerText = "Processing...";
+
+        try {
+            await db.collection("addmoney").add({
+                user: user.email,
+                method: selectedMethod,
+                amount: parseFloat(amount),
+                trxId: trx,
+                status: "pending",
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert("আপনার রিকোয়েস্ট পাঠানো হয়েছে। এডমিন চেক করে ব্যালেন্স এড করে দিবে।");
+            window.location.href = "order-history.html"; // বা যেখানে তুমি চাও
+        } catch (error) {
+            alert("সমস্যা হয়েছে: " + error.message);
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').innerText = "Submit Request";
+        }
+    }
+</script>
+</body>
+</html>

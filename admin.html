@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Panel - ORONNO TOPUP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { --primary: #ff6600; --dark: #0f172a; }
+        body { font-family: sans-serif; background: #f1f5f9; margin: 0; display: none; } /* ডিফল্টভাবে হাইড থাকবে */
+        .sidebar { width: 240px; background: var(--dark); height: 100vh; position: fixed; color: white; padding: 20px; }
+        .main { margin-left: 260px; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+        th { background: #f8fafc; }
+        .status-btn { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>ORONNO ADMIN</h2>
+    <p style="font-size: 12px; color: #888;">Owner Dashboard</p>
+    <hr>
+    <a href="#" style="color: white; text-decoration: none; display: block; padding: 10px 0;">Dashboard</a>
+    <a href="index.html" style="color: #ff4d4d; text-decoration: none; display: block; padding: 10px 0;">Exit Panel</a>
+    <button onclick="logoutAdmin()" style="margin-top: 20px; background: red; color: white; border: none; padding: 5px 10px; border-radius: 4px;">Logout</button>
+</div>
+
+<div class="main">
+    <h1>Dashboard Overview</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+        <div class="card"><h3>Total Orders</h3><p id="totalOrders">0</p></div>
+        <div class="card"><h3>Active Users</h3><p id="totalUsers">0</p></div>
+        <div class="card"><h3>Total Revenue</h3><p>৳ <span id="revenue">0</span></p></div>
+    </div>
+
+    <div class="card">
+        <h2>Add User Balance</h2>
+        <input type="email" id="userEmail" placeholder="User Email">
+        <input type="number" id="addAmount" placeholder="Amount (৳)">
+        <button class="btn" onclick="addBalance()">Update Balance</button>
+    </div>
+
+    <div class="card">
+        <h2>Pending Orders</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Item</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="pendingOrdersTable">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Firebase Config
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", 
+        authDomain: "oronnotopup.firebaseapp.com", 
+        projectId: "oronnotopup", 
+        appId: "1:726828355370:web:331983d5db04056e76d853" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // 🔐 Admin Security: শুধু তোমার ইমেইল থাকলে পেজ দেখাবে
+    const ADMIN_EMAIL = "ffunlockdoneff@gmail.com"; // এখানে তোমার নিজের জিমেইল দাও
+
+    auth.onAuthStateChanged(user => {
+        if (user && user.email === ADMIN_EMAIL) {
+            document.body.style.display = "block";
+            loadStats();
+            loadOrders();
+        } else {
+            alert("Access Denied! Only Admin can enter.");
+            window.location.href = "index.html";
+        }
+    });
+
+    // ব্যালেন্স অ্যাড করার ফাংশন
+    async function addBalance() {
+        const email = document.getElementById('userEmail').value;
+        const amount = parseFloat(document.getElementById('addAmount').value);
+
+        if(!email || !amount) return alert("Fill all fields");
+
+        const userRef = db.collection("users").doc(email);
+        const doc = await userRef.get();
+
+        if (doc.exists) {
+            await userRef.update({
+                balance: firebase.firestore.FieldValue.increment(amount)
+            });
+            alert("Balance Added Successfully!");
+        } else {
+            // যদি ইউজার আগে না থাকে, নতুন তৈরি হবে
+            await userRef.set({ balance: amount });
+            alert("New User Created with Balance!");
+        }
+    }
+
+    // স্ট্যাটাস লোড করা
+    function loadStats() {
+        db.collection("users").get().then(snap => {
+            document.getElementById('totalUsers').innerText = snap.size;
+        });
+        // Revenue এবং Order এর হিসাব তোমার Firestore কালেকশন অনুযায়ী হবে
+    }
+
+    // অর্ডার লোড করা
+    function loadOrders() {
+        db.collection("orders").where("status", "==", "pending").onSnapshot(snap => {
+            let html = "";
+            snap.forEach(doc => {
+                const order = doc.data();
+                html += `<tr>
+                    <td>${order.userEmail}</td>
+                    <td>${order.product}</td>
+                    <td>৳${order.price}</td>
+                    <td><button onclick="completeOrder('${doc.id}')" class="status-btn" style="background:green; color:white;">Complete</button></td>
+                </tr>`;
+            });
+            document.getElementById('pendingOrdersTable').innerHTML = html;
+        });
+    }
+
+    async function completeOrder(id) {
+        await db.collection("orders").doc(id).update({ status: "completed" });
+        alert("Order Marked as Completed!");
+    }
+
+    function logoutAdmin() {
+        auth.signOut().then(() => window.location.href = "index.html");
+    }
+</script>
+</body>
+</html>

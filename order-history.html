@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - ORONNO</title>
+    <link rel="icon" type="image/png" href="oron.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { margin: 0; background: #070b14; font-family: 'Poppins', sans-serif; color: white; padding: 20px; }
+        header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        header a { color: white; text-decoration: none; font-size: 20px; }
+        .order-container { max-width: 800px; margin: auto; }
+        .order-card { background: #111827; border: 1px solid #1f2937; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .order-info h4 { margin: 0; font-size: 16px; color: #ff6600; }
+        .order-info p { margin: 5px 0 0; font-size: 13px; color: #9ca3af; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .status-pending { background: rgba(255, 165, 0, 0.1); color: #ffa500; border: 1px solid #ffa500; }
+        .status-completed { background: rgba(0, 255, 0, 0.1); color: #00ff00; border: 1px solid #00ff00; }
+        #loadingText { text-align: center; margin-top: 50px; color: #9ca3af; }
+        .no-orders { text-align: center; color: #9ca3af; margin-top: 50px; display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html"><i class="fas fa-arrow-left"></i></a>
+        <h2 style="margin: 0; font-size: 20px;">My Orders</h2>
+    </header>
+
+    <div class="order-container">
+        <div id="loadingText"><i class="fas fa-spinner fa-spin"></i> লোড হচ্ছে...</div>
+        <div id="noOrders" class="no-orders">কোনো অর্ডার পাওয়া যায়নি।</div>
+        <div id="orderList"></div>
+    </div>
+
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", 
+        authDomain: "oronnotopup.firebaseapp.com", 
+        projectId: "oronnotopup", 
+        appId: "1:726828355370:web:331983d5db04056e76d853" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // orderBy একদম বাদ দেওয়া হয়েছে যাতে Index এর প্রয়োজন না পড়ে
+            db.collection("orders")
+              .where("user", "==", user.email)
+              .onSnapshot(snapshot => {
+                  document.getElementById('loadingText').style.display = 'none';
+                  const orderListDiv = document.getElementById('orderList');
+                  orderListDiv.innerHTML = "";
+
+                  if (snapshot.empty) {
+                      document.getElementById('noOrders').style.display = 'block';
+                      return;
+                  }
+
+                  document.getElementById('noOrders').style.display = 'none';
+
+                  // জাভাস্ক্রিপ্ট দিয়ে সর্ট করা (নতুন অর্ডার উপরে)
+                  let items = [];
+                  snapshot.forEach(doc => {
+                      items.push({ id: doc.id, ...doc.data() });
+                  });
+
+                  // ম্যানুয়ালি সময় অনুযায়ী সাজানো
+                  items.sort((a, b) => {
+                      let timeA = a.time ? a.time.seconds : 0;
+                      let timeB = b.time ? b.time.seconds : 0;
+                      return timeB - timeA;
+                  });
+
+                  items.forEach(data => {
+                      const orderDiv = document.createElement('div');
+                      orderDiv.className = 'order-card';
+                      
+                      let statusClass = "status-pending";
+                      let statusText = "Pending";
+                      
+                      if(data.status === "completed" || data.status === "approved" || data.status === "approve") {
+                          statusClass = "status-completed";
+                          statusText = "Completed";
+                      }
+
+                      orderDiv.innerHTML = `
+                          <div class="order-info">
+                              <h4>${data.item || 'Service'}</h4>
+                              <p>ID: ${data.id}</p>
+                              <p>Price: ৳ ${data.price || '0'}</p>
+                          </div>
+                          <div class="status-badge ${statusClass}">${statusText}</div>
+                      `;
+                      orderListDiv.appendChild(orderDiv);
+                  });
+              }, err => {
+                  document.getElementById('loadingText').innerHTML = "Error: " + err.message;
+              });
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+</script>
+</body>
+</html>

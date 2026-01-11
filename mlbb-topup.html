@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MLBB Topup - ORONNO</title>
+    <link rel="icon" type="image/png" href="oron.png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { --primary: #00ccff; --dark-bg: #070b14; --card-bg: #111827; --border: #1f2937; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: var(--dark-bg); color: white; font-family: 'Poppins', sans-serif; padding-top: 70px; padding-bottom: 120px; }
+        
+        header { background: #ffffff; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; width: 100%; z-index: 2000; border-bottom: 2px solid #000; height: 60px; }
+        .logo-area { display: flex; align-items: center; gap: 5px; text-decoration: none; }
+        .logo-area h1 { color: #d4af37; font-family: 'Orbitron'; font-size: 14px; margin: 0; }
+        .wallet-box { background: #f1f5f9; color: #333; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 12px; display: none; align-items: center; gap: 5px; border: 1px solid #ddd; }
+        
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; width: 90%; max-width: 380px; padding: 30px; border-radius: 12px; z-index: 4000; display: none; box-shadow: 0 15px 50px rgba(0,0,0,0.8); }
+        .modal.active { display: block; }
+        .modal input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #c2d1f0; border-radius: 8px; outline: none; }
+        .btn-blue { width: 100%; background: #4285F4; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-dark { width: 100%; background: #337ab7; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        .method-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .method-box { background: #1e293b; border-radius: 8px; border: 2px solid transparent; cursor: pointer; text-align: center; padding: 15px 5px; color: white; }
+        .method-box.active { border-color: var(--primary); background: #16202e; }
+        .method-box i { font-size: 20px; display: block; margin-bottom: 5px; }
+        .method-box span { font-size: 10px; font-weight: bold; display: block; }
+
+        #paymentInfo, #walletInfoBox { display: none; margin-top: 15px; background: #fff; color: #333; padding: 15px; border-radius: 10px; text-align: center; border-left: 5px solid var(--primary); }
+        
+        .item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .item-card { background: #070b14; border: 1px solid #1f2937; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; border-bottom: 3px solid transparent; }
+        .item-card.active { border-color: var(--primary); background: rgba(0,204,255,0.1); }
+
+        .whatsapp-btn { position: fixed; bottom: 85px; right: 20px; background: #25d366; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; z-index: 1000; }
+        .footer-buy { position: fixed; bottom: 0; width: 100%; background: #111827; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--primary); z-index: 1500; }
+
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #0f172a; z-index: 3000; transition: 0.3s; border-right: 2px solid var(--primary); }
+        .sidebar.active { left: 0; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2500; }
+        .side-link { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 15px 20px; border-bottom: 1px solid #1f2937; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div id="loginModal" class="modal">
+    <h2 style="margin:0;">Login</h2>
+    <button class="btn-blue" onclick="googleLogin()"><i class="fab fa-google"></i> Google Login</button>
+    <div style="text-align:center; margin:10px 0; font-size:12px;">OR</div>
+    <input type="email" id="modalEmail" placeholder="Email">
+    <input type="password" id="modalPass" placeholder="Password">
+    <button class="btn-dark" onclick="emailAuth('login')">Login</button>
+    <button style="width:100%; background:#eee; border:none; padding:8px; margin-top:10px; border-radius:8px; cursor:pointer;" onclick="emailAuth('signup')">Sign Up</button>
+    <center><button onclick="closeModal()" style="margin-top:10px; border:none; background:none; color:gray;">Cancel</button></center>
+</div>
+
+<header>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <i class="fas fa-bars" style="color:#333; cursor:pointer;" onclick="toggleSidebar()"></i>
+        <a href="index.html" class="logo-area"><img src="oron.png" width="25"><h1>ORONNO</h1></a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+        <div id="walletDisplay" class="wallet-box"><i class="fas fa-wallet" style="color:#00ccff"></i> ৳ <span id="userBalance">0</span></div>
+        <img id="uPicHeader" src="userlogo.png" style="width:35px; height:35px; border-radius:50%; display:none; border:2px solid var(--primary); cursor:pointer;" onclick="toggleSidebar()">
+        <button id="loginBtn" style="background:var(--primary); color:black; border:none; padding:8px 15px; border-radius:5px; font-weight:bold;" onclick="openModal()">LOGIN</button>
+    </div>
+</header>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="sidebar" id="sidebar">
+    <div style="padding:40px 20px; text-align:center; background:#1e293b;">
+        <img id="sidePic" src="userlogo.png" width="60" style="border-radius:50%; border:2px solid var(--primary);">
+        <h4 id="sideName" style="color:white; margin:10px 0 0;">Guest</h4>
+    </div>
+    <a href="index.html" class="side-link"><i class="fas fa-home"></i> Home</a>
+    <a href="myaccount-topup.html" class="side-link"><i class="fas fa-user-circle"></i> My Account</a>
+    <a href="order-history.html" class="side-link"><i class="fas fa-history"></i> History</a>
+    <a href="wallet-topup.html" class="side-link"><i class="fas fa-plus-circle"></i> Add Money</a>
+    <div onclick="logoutUser()" class="side-link" style="color:red; cursor:pointer;"><i class="fas fa-sign-out-alt"></i> Logout</div>
+</div>
+
+<div class="container" style="padding:10px; max-width:600px; margin:auto;">
+    <div class="card" style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border);">
+        <h4 style="color:var(--primary); margin:0 0 10px;">1. Account Details</h4>
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="uidInput" placeholder="User ID" style="flex: 2; padding:12px; background:#070b14; border:1px solid #374151; color:white; border-radius:6px; outline:none;">
+            <input type="number" id="zoneInput" placeholder="Zone ID" style="flex: 1; padding:12px; background:#070b14; border:1px solid #374151; color:white; border-radius:6px; outline:none;">
+        </div>
+    </div>
+
+    <div class="card" style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border);">
+        <h4 style="color:var(--primary); margin:0 0 10px;">2. Select Diamond Package</h4>
+        <div class="item-grid" id="mlbbPkgs"></div>
+    </div>
+
+    <div class="card" style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border);">
+        <h4 style="color:var(--primary); margin:0 0 10px;">3. Payment Method</h4>
+        <div class="method-grid">
+            <div class="method-box" id="paybkash" onclick="setPay('bkash')"><i class="fas fa-mobile-alt"></i><span>BKASH</span></div>
+            <div class="method-box" id="paynagad" onclick="setPay('nagad')"><i class="fas fa-mobile-alt"></i><span>NAGAD</span></div>
+            <div class="method-box" id="paywallet" onclick="setPay('wallet')"><i class="fas fa-wallet"></i><span>WALLET</span></div>
+        </div>
+        
+        <div id="paymentInfo">
+            <img id="infoLogo" src="bkash.png" style="height:25px; margin-bottom:5px;">
+            <p style="margin:0; font-weight:bold;">Send Money: <span style="color:var(--primary);">01959166419</span></p>
+            <input type="text" id="trxInput" placeholder="Enter Transaction ID" style="width:100%; padding:10px; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
+        </div>
+
+        <div id="walletInfoBox">
+            <p style="margin:0; font-weight:bold; color:#333;">Available Balance: <span style="color:var(--primary);">৳ <span id="wBal">0</span></span></p>
+            <p style="margin:5px 0 0; font-size:11px; color:gray;">Payment will be deducted instantly.</p>
+        </div>
+    </div>
+</div>
+
+<a href="https://wa.me/8801959166419" class="whatsapp-btn"><i class="fab fa-whatsapp"></i></a>
+
+<div class="footer-buy">
+    <div style="color:white">Total: <span id="displayTotal" style="color:var(--primary); font-weight:bold; font-size:18px;">0</span> ৳</div>
+    <button style="background:var(--primary); color:black; border:none; padding:12px 25px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="handleBuy()">BUY NOW</button>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", authDomain: "oronnotopup.firebaseapp.com", projectId: "oronnotopup", appId: "1:726828355370:web:331983d5db04056e76d853" };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(); const db = firebase.firestore();
+
+    const pkgs = [
+        {n:'50+50 Diamonds', p:101}, {n:'150+150 Diamonds', p:304}, {n:'250+250 Diamonds', p:488},
+        {n:'500+500 Diamonds', p:1001}, {n:'11 Diamonds', p:23}, {n:'22 Diamonds', p:45},
+        {n:'55 Diamonds', p:101}, {n:'86 Diamonds', p:159}, {n:'172 Diamonds', p:316},
+        {n:'257 Diamonds', p:457}, {n:'336 Diamonds', p:667}, {n:'565 Diamonds', p:1001},
+        {n:'706 Diamonds', p:1242}, {n:'2195 Diamonds', p:3758}, {n:'3688 Diamonds', p:6270},
+        {n:'5532 Diamonds', p:9468}, {n:'9288 Diamonds', p:15725}, {n:'Weekly Pass', p:197},
+        {n:'Twilight Pass', p:1088}
+    ];
+
+    let selectedPkg = null, paymentMethod = null, userBalance = 0;
+
+    pkgs.forEach(pkg => {
+        const div = document.createElement('div'); div.className = 'item-card';
+        div.innerHTML = `<b>${pkg.n}</b><br><span style="color:var(--primary)">৳ ${pkg.p}</span>`;
+        div.onclick = () => { document.querySelectorAll('.item-card').forEach(c=>c.classList.remove('active')); div.classList.add('active'); selectedPkg = pkg; document.getElementById('displayTotal').innerText = pkg.p; };
+        document.getElementById('mlbbPkgs').appendChild(div);
+    });
+
+    function openModal() { document.getElementById('loginModal').classList.add('active'); document.getElementById('overlay').style.display='block'; }
+    function closeModal() { document.getElementById('loginModal').classList.remove('active'); document.getElementById('overlay').style.display='none'; }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('active') ? 'block' : 'none'; }
+    function closeAll() { closeModal(); document.getElementById('sidebar').classList.remove('active'); document.getElementById('overlay').style.display='none'; }
+
+    function setPay(m) { 
+        paymentMethod = m; 
+        document.querySelectorAll('.method-box').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('pay'+m).classList.add('active'); 
+        if(m === 'wallet') {
+            document.getElementById('paymentInfo').style.display = 'none';
+            document.getElementById('walletInfoBox').style.display = 'block';
+            document.getElementById('wBal').innerText = userBalance;
+        } else {
+            document.getElementById('paymentInfo').style.display = 'block';
+            document.getElementById('walletInfoBox').style.display = 'none';
+            document.getElementById('infoLogo').src = m + '.png';
+        }
+    }
+
+    async function emailAuth(t) {
+        const e = document.getElementById('modalEmail').value, p = document.getElementById('modalPass').value;
+        if(!e || !p) return alert("Email & Pass empty!");
+        try {
+            if(t==='signup') { await auth.createUserWithEmailAndPassword(e,p); await db.collection("users").doc(e).set({balance:0, email:e}); alert("Sign up success!"); }
+            else await auth.signInWithEmailAndPassword(e,p);
+            closeModal();
+        } catch(err) { alert(err.message); }
+    }
+
+    async function googleLogin() { try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); closeModal(); } catch(e) { alert(e.message); } }
+    function handleBuy() { if(!auth.currentUser) openModal(); else placeOrder(); }
+
+    async function placeOrder() {
+        const uid = document.getElementById('uidInput').value, zone = document.getElementById('zoneInput').value, trx = document.getElementById('trxInput').value;
+        if(!uid || !zone || !selectedPkg || !paymentMethod) return alert("সব তথ্য দিন!");
+        if(paymentMethod==='wallet' && userBalance < selectedPkg.p) return alert("ব্যালেন্স নেই!");
+        
+        await db.collection("orders").add({ 
+            id: uid + " (" + zone + ")", 
+            item: selectedPkg.n, 
+            price: selectedPkg.p, 
+            method: paymentMethod, 
+            trxId: (paymentMethod==='wallet'?'Wallet':trx), 
+            user: auth.currentUser.email, 
+            status: "pending", 
+            time: new Date(),
+            game: "MLBB" 
+        });
+        
+        if(paymentMethod==='wallet') await db.collection("users").doc(auth.currentUser.email).update({ balance: userBalance - selectedPkg.p });
+        alert("অর্ডার সফল!"); location.href="order-history.html";
+    }
+
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            document.getElementById('loginBtn').style.display='none';
+            document.getElementById('uPicHeader').style.display='block';
+            document.getElementById('uPicHeader').src = user.photoURL || 'userlogo.png';
+            document.getElementById('walletDisplay').style.display='flex';
+            document.getElementById('sideName').innerText = user.displayName || user.email.split('@')[0];
+            db.collection("users").doc(user.email).onSnapshot(doc => { if(doc.exists) { userBalance = doc.data().balance || 0; document.getElementById('userBalance').innerText = userBalance; document.getElementById('wBal').innerText = userBalance; } });
+        }
+    });
+    function logoutUser() { auth.signOut().then(()=>location.reload()); }
+</script>
+</body>
+</html>

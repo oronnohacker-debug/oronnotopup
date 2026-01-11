@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ORONNO TOPUP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #070b14;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-card {
+            background: #111827;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            border: 1px solid #1f2937;
+        }
+        .login-card img { width: 60px; margin-bottom: 15px; }
+        .login-card h2 { margin-bottom: 25px; font-size: 20px; color: #ff6600; }
+        .google-btn {
+            background: white;
+            color: #333;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .google-btn:hover { background: #f1f1f1; }
+        .back-home {
+            margin-top: 20px;
+            display: block;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <img src="oron.png" alt="Logo">
+    <h2>Login to Oronno Topup</h2>
+    
+    <button class="google-btn" onclick="googleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 20px; margin: 0;">
+        Continue with Google
+    </button>
+
+    <a href="index.html" class="back-home"><i class="fas fa-arrow-left"></i> Back to Home</a>
+</div>
+
+<script>
+    // তোমার Firebase কনফিগ
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", 
+        authDomain: "oronnotopup.firebaseapp.com", 
+        projectId: "oronnotopup", 
+        appId: "1:726828355370:web:331983d5db04056e76d853" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function googleLogin() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then((result) => {
+            const user = result.user;
+            
+            // ইউজার ডাটা Firestore-এ সেভ করা
+            db.collection("users").doc(user.email).get().then((doc) => {
+                if (!doc.exists) {
+                    db.collection("users").doc(user.email).set({
+                        name: user.displayName,
+                        email: user.email,
+                        balance: 0,
+                        role: "user",
+                        joined: new Date()
+                    });
+                }
+                // লগইন সফল হলে ইনডেক্স পেজে পাঠিয়ে দিবে
+                window.location.href = "index.html";
+            });
+        }).catch((error) => {
+            alert("Login Failed: " + error.message);
+        });
+    }
+</script>
+
+</body>
+</html>

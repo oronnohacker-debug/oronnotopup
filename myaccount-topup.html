@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - ORONNO</title>
+    <link rel="icon" type="image/png" href="oron.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { margin: 0; background: #070b14; font-family: 'Poppins', sans-serif; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        .page-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; margin-top: 40px; }
+        
+        .account-card { background: white; color: #333; width: 100%; max-width: 900px; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
+        
+        .profile-pic { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ff6600; margin-bottom: 15px; object-fit: cover; }
+        
+        .user-name { font-size: 20px; font-weight: 600; margin: 0; color: #000; }
+        .user-email { font-size: 14px; color: #666; margin-bottom: 25px; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px; background: #fafafa; }
+        .stat-label { font-size: 12px; color: #777; font-weight: 600; display: block; margin-bottom: 5px; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #ff6600; }
+        
+        .info-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; font-size: 14px; text-align: left; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #555; font-weight: 500; }
+        .info-data { font-weight: bold; color: #000; }
+        .support-pin { color: #28a745; }
+
+        .back-home { margin-top: 30px; text-decoration: none; color: #ff6600; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="page-title">My Account</div>
+
+    <div class="account-card">
+        <img id="userImage" src="userlogo.png" class="profile-pic">
+        <p class="user-name" id="userName">Gamer</p>
+        <p class="user-email" id="userEmail">loading...</p>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-label">Wallet Balance</span>
+                <span class="stat-value">৳ <span id="balance">0.00</span></span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Total Orders</span>
+                <span class="stat-value" id="totalOrders">0</span>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">User ID:</span>
+            <span class="info-data">#OR-<span id="displayUID">10000</span></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Support PIN:</span>
+            <span class="info-data support-pin" id="supportPin">####</span>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-home"><i class="fas fa-arrow-left"></i> Back to Home</a>
+
+<script>
+    // Firebase Config (আগেরটাই ব্যবহার করবি)
+    const firebaseConfig = { 
+        apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", 
+        authDomain: "oronnotopup.firebaseapp.com", 
+        projectId: "oronnotopup", 
+        appId: "1:726828355370:web:331983d5db04056e76d853" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('userName').innerText = user.displayName || "Gamer";
+            document.getElementById('userEmail').innerText = user.email;
+            document.getElementById('userImage').src = user.photoURL || "userlogo.png";
+
+            // User ID (ইমেইল থেকে একটা ইউনিক নাম্বার বানানো)
+            let uidShort = user.uid.substring(0, 5).toUpperCase();
+            document.getElementById('displayUID').innerText = uidShort;
+
+            // Support PIN (একবার জেনারেট হয়ে লোকাল স্টোরেজে থাকবে)
+            let savedPin = localStorage.getItem('supportPin_' + user.uid);
+            if (!savedPin) {
+                savedPin = Math.floor(1000 + Math.random() * 9000); // 4 digit random
+                localStorage.setItem('supportPin_' + user.uid, savedPin);
+            }
+            document.getElementById('supportPin').innerText = savedPin;
+
+            // ব্যালেন্স ডাটাবেস থেকে লোড করা
+            db.collection("users").doc(user.email).onSnapshot(doc => {
+                if (doc.exists) {
+                    document.getElementById('balance').innerText = (doc.data().balance || 0).toFixed(2);
+                }
+            });
+
+            // টোটাল অর্ডার কাউন্ট করা
+            db.collection("orders").where("user", "==", user.email).get().then(snap => {
+                document.getElementById('totalOrders').innerText = snap.size;
+            });
+
+        } else {
+            window.location.href = "index.html"; // লগইন না থাকলে হোমে পাঠিয়ে দিবে
+        }
+    });
+</script>
+</body>
+</html>

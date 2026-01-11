@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - ORONNO TOPUP</title>
+    <style>
+        body { font-family: sans-serif; background: #070b14; color: white; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #111827; }
+        th, td { border: 1px solid #1f2937; padding: 12px; text-align: left; font-size: 13px; }
+        th { background: #ff6600; color: white; }
+        .btn-approve { background: #22c55e; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .btn-delete { background: #ef4444; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-left: 5px; }
+        .status-pending { color: #fbbf24; font-weight: bold; }
+        .status-completed { color: #22c55e; font-weight: bold; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h2>Order Management (Admin)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>User/ID</th>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Method/Trx</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="orderList"></tbody>
+    </table>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", authDomain: "oronnotopup.firebaseapp.com", projectId: "oronnotopup", appId: "1:726828355370:web:331983d5db04056e76d853" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function loadOrders() {
+            db.collection("orders").orderBy("time", "desc").onSnapshot(snapshot => {
+                let html = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    html += `<tr>
+                        <td>${data.uid || data.charId}<br><small>${data.user}</small></td>
+                        <td>${data.item}</td>
+                        <td>${data.price}৳</td>
+                        <td>${data.method}<br><small>${data.trxId || 'Wallet'}</small></td>
+                        <td class="status-${data.status}">${data.status.toUpperCase()}</td>
+                        <td>
+                            ${data.status === 'pending' ? `<button class="btn-approve" onclick="updateStatus('${id}', 'completed')">Approve</button>` : ''}
+                            <button class="btn-delete" onclick="deleteOrder('${id}')">Delete</button>
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('orderList').innerHTML = html;
+            });
+        }
+
+        async function updateStatus(id, status) {
+            if(confirm("Mark as Completed?")) {
+                await db.collection("orders").doc(id).update({ status: status });
+            }
+        }
+
+        async function deleteOrder(id) {
+            if(confirm("Delete this order?")) {
+                await db.collection("orders").doc(id).delete();
+            }
+        }
+
+        loadOrders();
+    </script>
+</body>
+</html>
