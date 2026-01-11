@@ -1,0 +1,24 @@
+---------------------------------------------------
+Here are the ownership and the certification details
+of the ORONNO TOPUP 1.0
+---------------------------------------------------
+
+app_name - 						ORONNO TOPUP
+app_alias - 					oronnotopup
+app_author_name - 				My Company
+app_author_organizational - 	My Company
+app_author_organization - 		My Company
+app_author_locality - 			My Company
+app_author_state - 				Dhaka
+app_author_country - 			Bangladesh
+app_password - 					6Mu6Pold2vbj
+app_versionName - 				versionName "1.0"
+app_versionCode - 				100
+
+---------------------------------------------------
+The certification was created by WebIntoApp.com at
+the Sunday 11th of January 2026 05:31:30 PM
+
+https://webintoapp.com
+---------------------------------------------------
+
