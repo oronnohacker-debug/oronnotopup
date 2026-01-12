@@ -299,17 +299,18 @@
         }
     });
 </script>
-    <script>
-    // যদি ৩ সেকেন্ডের মধ্যে লোড না হয়, তবে জোর করে দেখাবে
+<script>
+    // যদি ৩ সেকেন্ডের মধ্যে ফায়ারবেস বা ডাটা লোড না হয়, তবে সাদা স্ক্রিন সরিয়ে দিবে
     setTimeout(function() {
         document.body.style.display = "block";
     }, 3000);
 
-    // Error হ্যান্ডলিং (যদি কোনো ফাইল মিসিং থাকে)
+    // কোনো এরর থাকলেও যেন স্ক্রিন সাদা না হয়ে থাকে
     window.onerror = function() {
         document.body.style.display = "block";
     };
 </script>
 </body>
 </html>
+
 
