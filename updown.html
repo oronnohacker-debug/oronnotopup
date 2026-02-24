@@ -143,6 +143,41 @@
             alert("Deleted!");
         }
     }
+
+    // --- Dynamic Theme Engine for updown.html ---
+function applyTheme(color) {
+    document.documentElement.style.setProperty('--primary', color);
+    
+    let styleTag = document.getElementById('dynamic-theme-fix');
+    if(!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'dynamic-theme-fix';
+        document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = `
+        :root { --primary: ${color} !important; }
+        /* ব্যাকগ্রাউন্ড গ্লো এবং অন্যান্য এলিমেন্ট */
+        body { background: radial-gradient(circle at top, ${color}44 0%, #070b14 100%) !important; background-attachment: fixed !important; }
+        .notice-container, .search-box button, .login-btn, #searchBtn, .submit-btn { background: ${color} !important; }
+        .section-title, .card-name, .logo-area h1, .social-box a, .price-text { color: ${color} !important; }
+        .slider-container, footer, .sidebar, .game-card:hover, .whatsapp-float, #uPicHeader, #sideUserPic, .input-group { border-color: ${color} !important; }
+        .sidebar { background: linear-gradient(180deg, ${color}22 0%, #0f172a 100%) !important; }
+    `;
+}
+
+// লোকাল স্টোরেজ থেকে দ্রুত লোড করা
+const savedColor = localStorage.getItem('themeColor');
+if(savedColor) applyTheme(savedColor);
+
+// ফায়ারবেস থেকে রিয়েলটাইম কালার আপডেট আনা
+db.collection("settings").doc("appearance").onSnapshot((doc) => {
+    if (doc.exists) {
+        const color = doc.data().themeColor;
+        localStorage.setItem('themeColor', color);
+        applyTheme(color);
+    }
+});
 </script>
 </body>
+
 </html>
