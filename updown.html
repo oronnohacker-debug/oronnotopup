@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORONNO MASTER CONTROL</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #ff6600; --dark-bg: #0b0f1a; --card-bg: #161b2b; }
+        body { font-family: 'Poppins', sans-serif; background: var(--dark-bg); color: white; padding: 15px; margin: 0; }
+        .master-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
+        .card { background: var(--card-bg); border-radius: 15px; border: 1px solid #2d3343; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { font-family: 'Orbitron'; color: var(--primary); font-size: 16px; text-align: center; border-bottom: 1px solid #2d3343; padding-bottom: 10px; }
+        input, select { width: 100%; padding: 12px; background: #0b0f1a; border: 1px solid #2d3343; border-radius: 8px; color: white; margin-bottom: 10px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; transition: 0.3s; margin-top: 5px; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-theme { background: #10b981; color: white; }
+        .btn-danger { background: #dc2626; color: white; font-size: 10px; }
+        #calc-screen { background: #000; color: #10b981; text-align: right; font-size: 24px; padding: 15px; border-radius: 8px; margin-bottom: 10px; height: 60px; font-family: 'Orbitron'; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .game-box { width: 100%; height: 300px; background: #000; border-radius: 10px; overflow: hidden; border: 1px solid var(--primary); }
+        #adminArea { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="loginArea" style="text-align:center; margin-top:100px;">
+    <h1 style="font-family:'Orbitron'; color:var(--primary);">ORONNO ADMIN</h1>
+    <input type="password" id="passInput" placeholder="Password" style="max-width:300px;">
+    <button class="btn btn-main" onclick="checkPass()" style="max-width:300px;">LOGIN</button>
+</div>
+
+<div id="adminArea">
+    <div class="master-layout">
+        <div class="card">
+            <h2>WEBSITE CONTROL</h2>
+            <p style="text-align:center; color:#10b981; font-size:12px;">LIVE VISITORS: <span id="visitorCount">0</span></p>
+            
+            <div style="background:#0b0f1a; padding:10px; border-radius:8px; margin-bottom:15px; border:1px dashed #10b981;">
+                <label style="font-size:11px;">Change Theme Color</label>
+                <input type="color" id="themeColor" value="#ff6600" style="height:40px; cursor:pointer;">
+                <button class="btn btn-theme" onclick="saveTheme()">APPLY THEME</button>
+            </div>
+
+            <select id="category">
+                <option value="main-grid">Home Page Grid</option>
+                <option value="ff-topup">Free Fire</option>
+                <option value="pubg-topup">PUBG</option>
+                <option value="capcut-topup">CapCut</option>
+                <option value="yt-topup">YouTube</option>
+                <option value="canva-topup">Canva</option>
+                <option value="wallet-topup">Wallet</option>
+                <option value="slider">Home Slider</option>
+            </select>
+            <input type="text" id="title" placeholder="Item Name">
+            <input type="text" id="val" placeholder="Price (৳)">
+            <input type="text" id="imgUrl" placeholder="Image Name (e.g. ff.png)">
+            <input type="text" id="targetLink" placeholder="Page Link (e.g. ff.html)">
+            <button class="btn btn-main" onclick="saveData()">ADD ITEM</button>
+            <button class="btn btn-danger" onclick="deleteAll()">DELETE ALL IN CATEGORY</button>
+        </div>
+
+        <div class="card">
+            <h2>CALCULATOR</h2>
+            <div id="calc-screen"></div>
+            <div class="calc-grid">
+                <button class="btn" style="background:#333;" onclick="clearCalc()">C</button>
+                <button class="btn" style="background:#333;" onclick="press('/')">/</button>
+                <button class="btn" style="background:#333;" onclick="press('*')">*</button>
+                <button class="btn" style="background:#333;" onclick="back()">⌫</button>
+                <button class="btn" style="background:#333;" onclick="press('7')">7</button>
+                <button class="btn" style="background:#333;" onclick="press('8')">8</button>
+                <button class="btn" style="background:#333;" onclick="press('9')">9</button>
+                <button class="btn" style="background:#333;" onclick="press('-')">-</button>
+                <button class="btn" style="background:#333;" onclick="press('4')">4</button>
+                <button class="btn" style="background:#333;" onclick="press('5')">5</button>
+                <button class="btn" style="background:#333;" onclick="press('6')">6</button>
+                <button class="btn" style="background:#333;" onclick="press('+')">+</button>
+                <button class="btn" style="background:#333;" onclick="press('1')">1</button>
+                <button class="btn" style="background:#333;" onclick="press('2')">2</button>
+                <button class="btn" style="background:#333;" onclick="press('3')">3</button>
+                <button class="btn btn-main" onclick="solve()">=</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3D GAME</h2>
+            <div class="game-box">
+                <iframe src="https://www.crazygames.com/embed/polytrack" width="100%" height="100%" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", projectId: "oronnotopup" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function checkPass() {
+        if(document.getElementById('passInput').value === "oronno@21@12") {
+            document.getElementById('loginArea').style.display = 'none';
+            document.getElementById('adminArea').style.display = 'block';
+            db.collection("stats").doc("live").onSnapshot(d => {
+                if(d.exists) document.getElementById('visitorCount').innerText = d.data().count;
+            });
+        } else { alert("Wrong Pass!"); }
+    }
+
+    // Theme Save
+    function saveTheme() {
+        const color = document.getElementById('themeColor').value;
+        db.collection("settings").doc("appearance").set({ themeColor: color })
+        .then(() => alert("Theme Updated!"));
+    }
+
+    // Calculator
+    let screen = document.getElementById('calc-screen');
+    function press(x) { screen.innerText += x; }
+    function clearCalc() { screen.innerText = ''; }
+    function back() { screen.innerText = screen.innerText.slice(0,-1); }
+    function solve() { try { screen.innerText = eval(screen.innerText); } catch { screen.innerText = 'Error'; } }
+
+    // Data Save
+    function saveData() {
+        const cat = document.getElementById('category').value;
+        db.collection(cat).add({
+            name: document.getElementById('title').value,
+            price: document.getElementById('val').value,
+            image: document.getElementById('imgUrl').value,
+            link: document.getElementById('targetLink').value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => alert("Done!"));
+    }
+
+    async function deleteAll() {
+        const cat = document.getElementById('category').value;
+        if(confirm("Delete all in " + cat + "?")) {
+            const snap = await db.collection(cat).get();
+            snap.docs.forEach(d => db.collection(cat).doc(d.id).delete());
+            alert("Deleted!");
+        }
+    }
+</script>
+</body>
+</html>
