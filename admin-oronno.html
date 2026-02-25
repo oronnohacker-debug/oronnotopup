@@ -170,6 +170,50 @@
     async function deleteDoc(coll, id) {
         if(confirm("Delete this?")) await db.collection(coll).doc(id).delete();
     }
+    // অ্যাডমিন প্যানেলে টাকা অ্যাড করার রিকোয়েস্ট লোড করা
+function loadAddMoneyRequests() {
+    db.collection("addmoney").where("status", "==", "pending").onSnapshot(snap => {
+        const container = document.getElementById('adminAddMoneyList');
+        container.innerHTML = "";
+        snap.forEach(doc => {
+            const res = doc.data();
+            container.innerHTML += `
+                <div style="background:#161b2b; border:1px solid #333; padding:15px; margin-bottom:10px; border-radius:10px;">
+                    <p><b>User:</b> ${res.user}</p>
+                    <p><b>Amount:</b> ৳${res.amount}</p>
+                    <p><b>TRX:</b> ${res.trxId}</p>
+                    <button class="btn-theme" onclick="approveMoney('${doc.id}', '${res.user}', ${res.amount})">APPROVE</button>
+                    <button class="btn-danger" onclick="rejectMoney('${doc.id}')">REJECT</button>
+                </div>`;
+        });
+    });
+}
+
+// টাকা অ্যাপ্রুভ করা এবং ইউজারের একাউন্টে যোগ করা
+async function approveMoney(docId, userEmail, amount) {
+    try {
+        // ১. ইউজারের ব্যালেন্স আপডেট
+        const userRef = db.collection("users").doc(userEmail);
+        const userDoc = await userRef.get();
+        
+        if (userDoc.exists) {
+            const currentBalance = userDoc.data().balance || 0;
+            await userRef.update({
+                balance: currentBalance + amount
+            });
+        }
+
+        // ২. রিকোয়েস্টের স্ট্যাটাস পরিবর্তন
+        await db.collection("addmoney").doc(docId).update({
+            status: "approved"
+        });
+
+        alert("টাকা সফলভাবে ইউজারকে দেওয়া হয়েছে!");
+    } catch (err) {
+        alert("ভুল হয়েছে: " + err.message);
+    }
+}
 </script>
 </body>
+
 </html>
