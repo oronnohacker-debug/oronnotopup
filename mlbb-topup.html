@@ -218,7 +218,37 @@
         }
     });
     function logoutUser() { auth.signOut().then(()=>location.reload()); }
+    function applyTheme(color) {
+    document.documentElement.style.setProperty('--primary', color);
+    let styleTag = document.getElementById('dynamic-theme-fix');
+    if(!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'dynamic-theme-fix';
+        document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = `
+        :root { --primary: ${color} !important; }
+        .notice-container, .search-box button, .login-btn, #searchBtn { background: ${color} !important; }
+        .section-title, .card-name, .logo-area h1, .social-box a { color: ${color} !important; }
+        .slider-container, footer, .sidebar, .game-card:hover, .whatsapp-float, #uPicHeader, #sideUserPic { border-color: ${color} !important; }
+        .sidebar { background: linear-gradient(180deg, ${color}22 0%, #0f172a 100%) !important; }
+        body { background: radial-gradient(circle at top, ${color}44 0%, #070b14 100%) !important; background-attachment: fixed !important; }
+    `;
+}
+
+const savedColor = localStorage.getItem('themeColor');
+if(savedColor) applyTheme(savedColor);
+
+db.collection("settings").doc("appearance").onSnapshot((doc) => {
+    if (doc.exists) {
+        const color = doc.data().themeColor;
+        localStorage.setItem('themeColor', color);
+        applyTheme(color);
+    }
+});
+    
 </script>
 </body>
 
 </html>
+
