@@ -138,23 +138,36 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
         applyTheme(color);
     }
 });
-    // হিস্টোরি পেজে ডাটা দেখানোর জন্য
 auth.onAuthStateChanged(user => {
     if (user) {
         db.collection("addmoney")
-          .where("user", "==", user.email) // শুধু লগইন করা ইউজারের ডাটা
-          .orderBy("time", "desc")
+          .where("user", "==", user.email)
           .onSnapshot(snap => {
-            const list = document.getElementById('historyList'); // তোমার HTML এ এই ID থাকতে হবে
-            list.innerHTML = "";
+            // HTML এ 'historyList' নামে কোনো আইডি আছে কি না নিশ্চিত হও, না থাকলে 'orderList' ব্যবহার করো
+            const list = document.getElementById('orderList'); 
+            if(!list) return;
+
+            let items = [];
             snap.forEach(doc => {
-                const data = doc.data();
+                items.push({ id: doc.id, ...doc.data() });
+            });
+
+            // জাভাস্ক্রিপ্ট দিয়ে নতুন ডাটা উপরে সাজানো
+            items.sort((a, b) => (b.time?.seconds || 0) - (a.time?.seconds || 0));
+
+            list.innerHTML = ""; 
+            if (items.length === 0) {
+                list.innerHTML = "<p style='text-align:center;'>কোনো ট্রানজেকশন পাওয়া যায়নি।</p>";
+                return;
+            }
+
+            items.forEach(data => {
                 list.innerHTML += `
                     <div style="background:#111827; padding:15px; border-radius:10px; margin-bottom:10px; border-left:4px solid ${data.status === 'pending' ? '#ffcc00' : '#10b981'}">
-                        <p style="margin:0; font-size:12px;">Method: ${data.method.toUpperCase()}</p>
-                        <p style="margin:5px 0; font-weight:bold;">Amount: ৳${data.amount}</p>
-                        <p style="margin:0; font-size:11px; opacity:0.7;">TRX: ${data.trxId}</p>
-                        <span style="font-size:10px; background:${data.status === 'pending' ? '#ffcc00' : '#10b981'}; color:#000; padding:2px 6px; border-radius:4px; float:right;">${data.status.toUpperCase()}</span>
+                        <p style="margin:0; font-size:12px; color: #ff6600;">Method: ${(data.method || 'N/A').toUpperCase()}</p>
+                        <p style="margin:5px 0; font-weight:bold;">Amount: ৳${data.amount || 0}</p>
+                        <p style="margin:0; font-size:11px; opacity:0.7;">TRX: ${data.trxId || 'N/A'}</p>
+                        <span style="font-size:10px; background:${data.status === 'pending' ? '#ffcc00' : '#10b981'}; color:#000; padding:2px 6px; border-radius:4px; float:right; font-weight:bold;">${(data.status || 'PENDING').toUpperCase()}</span>
                     </div>`;
             });
         });
@@ -164,4 +177,5 @@ auth.onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
