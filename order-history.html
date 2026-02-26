@@ -25,6 +25,32 @@
         .status-completed { background: rgba(0, 255, 0, 0.1); color: #00ff00; border: 1px solid #00ff00; }
         #loadingText { text-align: center; margin-top: 50px; color: #9ca3af; }
         .no-orders { text-align: center; color: #9ca3af; margin-top: 50px; display: none; }
+
+        
+#orderList div, #historyList div {
+    animation: slideInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* স্ট্যাটাস ব্যাজটি হালকা ব্লিংক করবে */
+.status-pending {
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.6; }
+}
     </style>
 </head>
 <body>
@@ -177,5 +203,6 @@ auth.onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
