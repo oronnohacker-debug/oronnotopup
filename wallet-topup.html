@@ -40,6 +40,33 @@
 
         
 
+
+.balance-card {
+    animation: glow-pulse 2s infinite;
+}
+
+@keyframes glow-pulse {
+    0% { box-shadow: 0 0 5px rgba(255, 102, 0, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(255, 102, 0, 0.4); }
+}
+
+/* মেথড সিলেক্ট করলে একটা বাউন্স ইফেক্ট হবে */
+.method {
+    transition: 0.3s;
+}
+.method:active {
+    transform: scale(0.9);
+}
+.method.active {
+    animation: border-dance 0.5s ease-in-out;
+}
+
+@keyframes border-dance {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
     </style>
 </head>
 <body>
@@ -179,5 +206,6 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
 </body>
 
 </html>
+
 
 
