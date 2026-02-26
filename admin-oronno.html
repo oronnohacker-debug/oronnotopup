@@ -36,6 +36,20 @@
         .status-tag { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; font-weight: bold; }
         .pending-tag { background: rgba(255, 165, 0, 0.2); color: #ffa500; }
         .done-tag { background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+
+        /* অ্যাডমিন প্যানেল অ্যানিমেশন */
+.request-item {
+    animation: new-entry 0.5s ease-in;
+}
+
+@keyframes new-entry {
+    from { background: var(--primary); }
+    to { background: #070b14; }
+}
+
+button:active {
+    transform: translateY(2px);
+}
     </style>
 </head>
 <body>
@@ -260,4 +274,5 @@ async function approveMoney(docId, userEmail, amount) {
 </body>
 
 </html>
+
 
