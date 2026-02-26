@@ -75,8 +75,7 @@
     position: relative;
     width: 100%;
     background: transparent;
-    overflow: visible; /* ক্যারেক্টার যাতে কেটে না যায় */
-    line-height: 0;
+    overflow: visible;
 }
 
 .waves {
@@ -86,34 +85,31 @@
     margin-bottom: -1px; 
 }
 
+/* ঢেউয়ের এনিমেশন */
 .parallax > use {
     animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
 }
-.parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 7s; }
-.parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 10s; }
-.parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 13s; }
-.parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 20s; }
-
 @keyframes move-forever {
     0% { transform: translate3d(-90px,0,0); }
     100% { transform: translate3d(85px,0,0); }
 }
 
-/* এনিমে ড্যান্সার পজিশন - এটি এখন ঢেউয়ের একদম সামনে থাকবে */
-.anime-dancer {
+/* ডোরেমন পজিশন */
+.doraemon-dancer {
     position: absolute;
-    right: 20px;
-    bottom: 5px; /* ঢেউয়ের ওপর পা রেখে নাচবে */
+    right: 30px; /* ডান দিকে থাকবে */
+    bottom: 10px; /* ঢেউয়ের উপরে থাকবে */
     z-index: 9999;
 }
 
-.anime-dancer img {
-    width: 120px; /* যদি ছোট লাগে তবে বাড়াতে পারিস */
+.doraemon-dancer img {
+    width: 100px; /* ডোরেমনের সাইজ */
     height: auto;
+    filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.5)); /* ডোরেমনের চারপাশে হালকা নীল গ্লো */
 }
 
 @media (max-width: 768px) {
-    .anime-dancer img { width: 80px; }
+    .doraemon-dancer img { width: 70px; }
     .waves { height: 60px; }
 }
 </style>
@@ -309,7 +305,7 @@ body {
     <p>Fastest & Reliable Gaming Topup Service.</p>
     <p>© 2026 ORONNO TOPUP. All Rights Reserved.</p>
 
-  <div class="new-footer-container">
+ <div class="new-footer-container">
     <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
         <defs>
@@ -323,8 +319,8 @@ body {
         </g>
     </svg>
     
-    <div class="anime-dancer">
-        <img src="https://media.tenor.com/y29v9AALKbAAAAAi/anime-dance.gif" alt="Dancing Anime">
+    <div class="doraemon-dancer">
+        <img src="https://media.tenor.com/tS749o5S_p0AAAAi/doraemon-dance.gif" alt="Dancing Doraemon">
     </div>
 </div>
 </footer>
@@ -462,6 +458,7 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
 </script>
 </body>
 </html>
+
 
 
 
