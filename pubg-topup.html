@@ -112,6 +112,16 @@
             <input type="text" id="trxInput" placeholder="TrxID" style="width:100%; padding:10px; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
         </div>
 
+        // Database theke payment number ana
+db.collection('settings').doc('payment').onSnapshot(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+        // ধরি তোর HTML-এ id="bkash-num" দেওয়া আছে
+        if(document.getElementById('bkash-num')) document.getElementById('bkash-num').innerText = data.bkash;
+        if(document.getElementById('nagad-num')) document.getElementById('nagad-num').innerText = data.nagad;
+    }
+});
+
         <div id="walletInfoBox">
             <p style="margin:0; font-weight:bold; color:#333;">Available Balance: <span style="color:var(--primary);">৳ <span id="wBal">0</span></span></p>
             <p style="margin:5px 0 0; font-size:11px; color:gray;">Payment will be deducted from your account.</p>
@@ -234,4 +244,5 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
 </body>
 
 </html>
+
 
