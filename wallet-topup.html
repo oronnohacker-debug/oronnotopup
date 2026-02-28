@@ -106,14 +106,7 @@
     </div>
 </div>
 
-db.collection('settings').doc('payment').onSnapshot(doc => {
-    if (doc.exists) {
-        const data = doc.data();
-        // ধরি তোর HTML-এ id="bkash-num" দেওয়া আছে
-        if(document.getElementById('bkash-num')) document.getElementById('bkash-num').innerText = data.bkash;
-        if(document.getElementById('nagad-num')) document.getElementById('nagad-num').innerText = data.nagad;
-    }
-});
+
 
 <script>
     const firebaseConfig = { 
@@ -211,10 +204,20 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
         applyTheme(color);
     }
 });
+    // এই কোডটা <script> ট্যাগের ভেতরে থাকবে
+db.collection('admin').doc('payment').onSnapshot(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+        // অ্যাডমিন প্যানেলের ইনপুট ID অনুযায়ী ডাটা বসানো
+        if(document.getElementById('bkash-num')) document.getElementById('bkash-num').innerText = data.bKash || "Not Set";
+        if(document.getElementById('nagad-num')) document.getElementById('nagad-num').innerText = data.Nagad || "Not Set";
+    }
+});
 </script>
 </body>
 
 </html>
+
 
 
 
