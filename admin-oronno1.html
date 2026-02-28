@@ -670,25 +670,25 @@ function loginAdmin() {
             if(viewId === 'banners') loadBanners();
         }
 
- function loadDashboardData() {
-    // মোট মেম্বার (যেকোনো গেমের ইউজার হোক)
+function loadDashboardData() {
+    // মোট ইউজার সংখ্যা
     db.collection('users').onSnapshot(snap => {
-        document.getElementById('total-users').innerText = snap.size;
+        document.getElementById('total-users').innerText = snap.size || 0;
     });
 
-    // মোট সব অর্ডার (FF, PUBG, Canva, YT সব মিলিয়ে)
+    // সব অর্ডার (FF, PUBG, Canva, MLBB যা-ই হোক)
     db.collection('orders').onSnapshot(snap => {
-        document.getElementById('total-orders').innerText = snap.size;
+        document.getElementById('total-orders').innerText = snap.size || 0;
         
-        // যদি আলাদা করে দেখতে চাস কোনটার কয়টা অর্ডার:
-        let ffCount = 0, pubgCount = 0, ytCount = 0;
+        // যদি আলাদা ক্যাটাগরি দেখতে চাস (অপশনাল)
+        let ff = 0, pubg = 0, others = 0;
         snap.forEach(doc => {
-            let game = doc.data().game;
-            if(game === "Free Fire") ffCount++;
-            if(game === "PUBG") pubgCount++;
-            if(game === "YouTube") ytCount++;
+            let type = doc.data().game; 
+            if(type === 'Free Fire') ff++;
+            else if(type === 'PUBG') pubg++;
+            else others++;
         });
-        console.log("FF:", ffCount, "PUBG:", pubgCount, "YT:", ytCount);
+        console.log(`FF: ${ff}, PUBG: ${pubg}, Others: ${others}`);
     });
 }
         function loadSettings() {
