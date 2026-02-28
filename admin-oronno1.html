@@ -1184,6 +1184,38 @@ function loginAdmin() {
                 if(r.isConfirmed) db.collection(collection).doc(id).delete();
             });
         }
+
+
+        // General Settings Save (Name, Notice, App Link)
+function saveGeneralInfo() {
+    const sitename = document.getElementById('set-sitename').value;
+    const logo = document.getElementById('set-logo').value;
+    const notice = document.getElementById('set-notice').value;
+    const applink = document.getElementById('set-applink').value;
+
+    showLoading();
+    db.collection('settings').doc('general').set({
+        sitename, logo, notice, applink
+    }, { merge: true }).then(() => {
+        hideLoading();
+        Swal.fire('Success', 'General settings saved!', 'success');
+    }).catch(err => { hideLoading(); Swal.fire('Error', err.message, 'error'); });
+}
+
+// Payment Numbers Save (bKash, Nagad, Rocket)
+function savePaymentInfo() {
+    const bkash = document.getElementById('set-bkash').value;
+    const nagad = document.getElementById('set-nagad').value;
+    const rocket = document.getElementById('set-rocket').value;
+
+    showLoading();
+    db.collection('settings').doc('payment').set({
+        bkash, nagad, rocket
+    }, { merge: true }).then(() => {
+        hideLoading();
+        Swal.fire('Success', 'Payment numbers updated!', 'success');
+    }).catch(err => { hideLoading(); Swal.fire('Error', err.message, 'error'); });
+}
     </script>
 </body>
 </html>
