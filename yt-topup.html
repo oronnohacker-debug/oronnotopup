@@ -178,11 +178,15 @@
     async function googleLogin() { try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); closeModal(); } catch(e) { alert(e.message); } }
     function handleBuy() { if(!auth.currentUser) openModal(); else placeOrder(); }
 
-    async function placeOrder() {
-        const gmail = document.getElementById('gmailInput').value, trx = document.getElementById('trxInput').value;
-        if(!gmail || !selectedPkg || !paymentMethod) return alert("জিমেইল ও পেমেন্ট মেথড ঠিক করুন!");
-        if(paymentMethod==='wallet' && userBalance < selectedPkg.p) return alert("ওয়ালেটে টাকা নেই!");
-        
+ async function placeOrder() {
+    const gmail = document.getElementById('gmailInput').value;
+    const trx = document.getElementById('trxInput').value;
+    
+    if(!gmail || !selectedPkg || !paymentMethod) return alert("জিমেইল ও প্যাকেজ ঠিক করুন!");
+    if(paymentMethod==='wallet' && userBalance < selectedPkg.p) return alert("ওয়ালেটে টাকা নেই!");
+    
+    try {
+        // ১. অর্ডার সেভ করা
         await db.collection("orders").add({ 
             id: gmail, 
             item: selectedPkg.n, 
@@ -191,13 +195,24 @@
             trxId: (paymentMethod==='wallet'?'Wallet':trx), 
             user: auth.currentUser.email, 
             status: "pending", 
-            time: new Date(),
+            time: firebase.firestore.FieldValue.serverTimestamp(),
             game: "YouTube" 
         });
         
-        if(paymentMethod==='wallet') await db.collection("users").doc(auth.currentUser.email).update({ balance: userBalance - selectedPkg.p });
-        alert("অর্ডার সফল হয়েছে!"); location.href="order-history.html";
+        // ২. ওয়ালেট পেমেন্ট হলে ব্যালেন্স আপডেট
+        if(paymentMethod === 'wallet') {
+            const userRef = db.collection("users").doc(auth.currentUser.email);
+            await userRef.update({ 
+                balance: userBalance - selectedPkg.p 
+            });
+        }
+        
+        alert("অর্ডার সফল হয়েছে!"); 
+        location.href="order-history.html";
+    } catch(err) {
+        alert("অর্ডার ফেইল হয়েছে: " + err.message);
     }
+}
 
     auth.onAuthStateChanged(user => {
         if(user) {
@@ -263,6 +278,7 @@ db.collection('admin').doc('payment').onSnapshot(doc => {
 </body>
 
 </html>
+
 
 
 
