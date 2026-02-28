@@ -430,6 +430,16 @@ db.collection('settings').doc('general').onSnapshot(doc => {
         }
     }
 });
+
+    db.collection('settings').doc('general').onSnapshot(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+        if(data.sitename) document.title = data.sitename;
+        if(document.getElementById('site-notice')) {
+            document.getElementById('site-notice').innerText = data.notice || "";
+        }
+    }
+});
     
 </script>
 <script>
@@ -473,6 +483,7 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
 </script>
 </body>
 </html>
+
 
 
 
