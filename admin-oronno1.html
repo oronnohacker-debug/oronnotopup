@@ -670,20 +670,29 @@ function loginAdmin() {
             if(viewId === 'banners') loadBanners();
         }
 
-      function loadDashboardData() {
-    // ডাটাবেস থেকে আসল মেম্বার সংখ্যা বের করা
+   function loadDashboardData() {
+    // ১. সাইটের মোট মেম্বার (যেকোনো পেজ থেকে সাইন-আপ করুক)
+    db.collection('users').onSnapshot(snap => {
+        document.getElementById('total-users').innerText = snap.size;
+    });
+
+    // ২. মোট অর্ডার (FF, PUBG, Canva, YT সব মিলিয়ে)
+    db.collection('orders').onSnapshot(snap => {
+        document.getElementById('total-orders').innerText = snap.size;
+    });
+
+    // ৩. ওয়ালেট ব্যালেন্স চেক (সব ইউজারের মোট টাকা কত জমা আছে)
     db.collection('users').get().then(snap => {
-        const totalUsers = snap.size; // আসল সংখ্যা
-        document.getElementById('total-users').innerText = totalUsers;
-    }).catch(err => console.error("User count error:", err));
-
-    // ডাটাবেস থেকে আসল অর্ডার সংখ্যা বের করা
-    db.collection('orders').get().then(snap => {
-        const totalOrders = snap.size; // আসল সংখ্যা
-        document.getElementById('total-orders').innerText = totalOrders;
-    }).catch(err => console.error("Order count error:", err));
+        let totalWalletMoney = 0;
+        snap.forEach(doc => {
+            totalWalletMoney += Number(doc.data().balance || 0);
+        });
+        // যদি তোর ড্যাশবোর্ডে ওয়ালেট ব্যালেন্স দেখার বক্স থাকে
+        if(document.getElementById('total-wallet')) {
+            document.getElementById('total-wallet').innerText = totalWalletMoney;
+        }
+    });
 }
-
         function loadSettings() {
             db.collection('settings').doc('general').get().then(doc => {
                 if(doc.exists) {
