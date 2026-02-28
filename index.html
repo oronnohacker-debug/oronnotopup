@@ -416,6 +416,21 @@ body {
             });
         }
     });
+
+
+    // Database theke settings niye asha
+db.collection('settings').doc('general').onSnapshot(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+        // Website-er name change
+        document.title = data.sitename || "Oronno Topup";
+        // Website-er notice change (jodi notice div thake)
+        if(document.getElementById('site-notice')) {
+            document.getElementById('site-notice').innerText = data.notice;
+        }
+    }
+});
+    
 </script>
 <script>
     // যদি ৩ সেকেন্ডের মধ্যে ফায়ারবেস বা ডাটা লোড না হয়, তবে সাদা স্ক্রিন সরিয়ে দিবে
@@ -458,6 +473,7 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
 </script>
 </body>
 </html>
+
 
 
 
