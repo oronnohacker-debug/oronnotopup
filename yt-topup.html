@@ -249,9 +249,21 @@ db.collection('admin').doc('payment').onSnapshot(doc => {
     }
 });
 </script>
+    <script>
+// এই ফাংশনটা অ্যাডমিন প্যানেল থেকে নাম্বার টেনে আনবে
+db.collection('admin').doc('payment').onSnapshot(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+        if(document.getElementById('bkash-num')) {
+            document.getElementById('bkash-num').innerText = data.bKash || "01959166419"; 
+        }
+    }
+});
+</script>
 </body>
 
 </html>
+
 
 
 
