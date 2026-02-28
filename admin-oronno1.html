@@ -671,26 +671,26 @@ function loginAdmin() {
         }
 
 function loadDashboardData() {
-    // মোট ইউজার সংখ্যা
+    // ১. সব ইউজার একসাথে দেখাবে
     db.collection('users').onSnapshot(snap => {
-        document.getElementById('total-users').innerText = snap.size || 0;
+        document.getElementById('total-users').innerText = snap.size;
     });
 
-    // সব অর্ডার (FF, PUBG, Canva, MLBB যা-ই হোক)
+    // ২. সব অর্ডার (FF, PUBG, YT, Canva সব মিলিয়ে)
     db.collection('orders').onSnapshot(snap => {
-        document.getElementById('total-orders').innerText = snap.size || 0;
+        document.getElementById('total-orders').innerText = snap.size;
         
-        // যদি আলাদা ক্যাটাগরি দেখতে চাস (অপশনাল)
-        let ff = 0, pubg = 0, others = 0;
+        // এখানে তুই চাইলে আলাদা করে লজিক বসাতে পারিস
+        let totalIncome = 0;
         snap.forEach(doc => {
-            let type = doc.data().game; 
-            if(type === 'Free Fire') ff++;
-            else if(type === 'PUBG') pubg++;
-            else others++;
+            totalIncome += Number(doc.data().price || 0);
         });
-        console.log(`FF: ${ff}, PUBG: ${pubg}, Others: ${others}`);
+        if(document.getElementById('total-earnings')) {
+            document.getElementById('total-earnings').innerText = totalIncome;
+        }
     });
 }
+
         function loadSettings() {
             db.collection('settings').doc('general').get().then(doc => {
                 if(doc.exists) {
