@@ -108,7 +108,7 @@
         
         <div id="paymentInfo">
             <img id="infoLogo" src="bkash.png" style="height:25px; margin-bottom:5px;">
-            <p style="margin:0; font-weight:bold;">সেন্ড মানি করুন: <span style="color:var(--primary);">01959166419</span></p>
+            <p style="margin:0; font-weight:bold;">সেন্ড মানি করুন: <span style="color:var(--primary);">01959166419</span></p> <p>সেন্ট মানি করুন: <span id="bkash-num" style="color:var(--primary);">Loading...</span></p>
             <input type="text" id="trxInput" placeholder="TrxID (ট্রানজেকশন আইডি)" style="width:100%; padding:10px; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
         </div>
 
@@ -252,6 +252,7 @@ db.collection('admin').doc('payment').onSnapshot(doc => {
 </body>
 
 </html>
+
 
 
 
