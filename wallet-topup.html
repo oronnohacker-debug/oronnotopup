@@ -106,6 +106,15 @@
     </div>
 </div>
 
+db.collection('settings').doc('payment').onSnapshot(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+        // ধরি তোর HTML-এ id="bkash-num" দেওয়া আছে
+        if(document.getElementById('bkash-num')) document.getElementById('bkash-num').innerText = data.bkash;
+        if(document.getElementById('nagad-num')) document.getElementById('nagad-num').innerText = data.nagad;
+    }
+});
+
 <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyCIzSIlIiWoh0TdiBu4vkN4X87Y0oQHz7A", 
@@ -206,6 +215,7 @@ db.collection("settings").doc("appearance").onSnapshot((doc) => {
 </body>
 
 </html>
+
 
 
 
