@@ -670,27 +670,19 @@ function loginAdmin() {
             if(viewId === 'banners') loadBanners();
         }
 
-        async function loadDashboardData() {
-            db.collection('users').get().then(snap => {
-                const el = document.getElementById('dash-users');
-                if(el) el.innerText = snap.size;
-            });
-            db.collection('orders').get().then(snap => {
-                const elOrders = document.getElementById('dash-orders');
-                if(elOrders) elOrders.innerText = snap.size;
-                let rev = 0;
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    if(data.status === 'success' || data.status === 'completed') rev += parseInt(data.price || 0);
-                });
-                const elRev = document.getElementById('dash-revenue');
-                if(elRev) elRev.innerText = '৳' + rev;
-            });
-            db.collection('deposits').where('status', '==', 'pending').get().then(snap => {
-                const elDep = document.getElementById('dash-deposits');
-                if(elDep) elDep.innerText = snap.size;
-            });
-        }
+      function loadDashboardData() {
+    // ডাটাবেস থেকে আসল মেম্বার সংখ্যা বের করা
+    db.collection('users').get().then(snap => {
+        const totalUsers = snap.size; // আসল সংখ্যা
+        document.getElementById('total-users').innerText = totalUsers;
+    }).catch(err => console.error("User count error:", err));
+
+    // ডাটাবেস থেকে আসল অর্ডার সংখ্যা বের করা
+    db.collection('orders').get().then(snap => {
+        const totalOrders = snap.size; // আসল সংখ্যা
+        document.getElementById('total-orders').innerText = totalOrders;
+    }).catch(err => console.error("Order count error:", err));
+}
 
         function loadSettings() {
             db.collection('settings').doc('general').get().then(doc => {
